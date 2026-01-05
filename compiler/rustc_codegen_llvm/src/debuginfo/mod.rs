@@ -24,7 +24,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::sync::Lrc;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_index::vec::IndexVec;
-use rustc_middle::mir;
+use rustc_middle::mir::{self, Safety};
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::subst::{GenericArgKind, SubstsRef};
 use rustc_middle::ty::{self, Instance, ParamEnv, Ty, TypeVisitable};
@@ -547,8 +547,23 @@ impl<'ll, 'tcx> DebugInfoMethods<'tcx> for CodegenCx<'ll, 'tcx> {
         span: Span,
     ) -> &'ll DILocation {
         let DebugLoc { line, col, .. } = self.lookup_debug_loc(span.lo());
+        unsafe { llvm::LLVMRustDIBuilderCreateDebugLocation(line, col, scope, inlined_at, 0) }
+    }
 
-        unsafe { llvm::LLVMRustDIBuilderCreateDebugLocation(line, col, scope, inlined_at) }
+    fn dbg_loc_with_safety(
+        &self,
+        scope: &'ll DIScope,
+        inlined_at: Option<&'ll DILocation>,
+        span: Span,
+        safety: Safety
+    ) -> &'ll DILocation {
+        let DebugLoc { line, col, .. } = self.lookup_debug_loc(span.lo());
+        let discriminator = match safety {
+            Safety::Safe => 0,
+            _ => 3
+        };
+        // eprintln!("DEBUG[dbg_loc_with_safety]: scope {:?} has safety {:?} (discriminator: {:?})", scope, safety, discriminator);
+        unsafe { llvm::LLVMRustDIBuilderCreateDebugLocation(line, col, scope, inlined_at, discriminator) }
     }
 
     fn create_vtable_debuginfo(

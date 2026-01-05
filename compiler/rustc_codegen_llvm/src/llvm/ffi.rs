@@ -2238,6 +2238,7 @@ extern "C" {
         Column: c_uint,
         Scope: &'a DIScope,
         InlinedAt: Option<&'a DILocation>,
+        Discriminator: c_uint
     ) -> &'a DILocation;
     pub fn LLVMRustDIBuilderCreateOpDeref() -> u64;
     pub fn LLVMRustDIBuilderCreateOpPlusUconst() -> u64;

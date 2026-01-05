@@ -1,6 +1,6 @@
 use super::BackendTypes;
 use crate::mir::debuginfo::{FunctionDebugContext, VariableKind};
-use rustc_middle::mir;
+use rustc_middle::mir::{self, Safety};
 use rustc_middle::ty::{Instance, PolyExistentialTraitRef, Ty};
 use rustc_span::{SourceFile, Span, Symbol};
 use rustc_target::abi::call::FnAbi;
@@ -41,6 +41,16 @@ pub trait DebugInfoMethods<'tcx>: BackendTypes {
         inlined_at: Option<Self::DILocation>,
         span: Span,
     ) -> Self::DILocation;
+
+    fn dbg_loc_with_safety(
+        &self,
+        scope: Self::DIScope,
+        inlined_at: Option<Self::DILocation>,
+        span: Span,
+        _safety: Safety,
+    ) -> Self::DILocation {
+        self.dbg_loc(scope, inlined_at, span)
+    }
 
     fn extend_scope_to_file(
         &self,

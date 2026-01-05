@@ -1086,11 +1086,19 @@ LLVMRustDICompositeTypeReplaceArrays(LLVMRustDIBuilderRef Builder,
 extern "C" LLVMMetadataRef
 LLVMRustDIBuilderCreateDebugLocation(unsigned Line, unsigned Column,
                                      LLVMMetadataRef ScopeRef,
-                                     LLVMMetadataRef InlinedAt) {
+                                     LLVMMetadataRef InlinedAt,
+                                     unsigned Discriminator) {
   MDNode *Scope = unwrapDIPtr<MDNode>(ScopeRef);
   DILocation *Loc = DILocation::get(
       Scope->getContext(), Line, Column, Scope,
       unwrapDIPtr<MDNode>(InlinedAt));
+  if (Discriminator != 0) {
+    const DILocation* LocWithDI = Loc->cloneWithDiscriminator(Discriminator);
+    errs() << "get Discriminator: " << Discriminator << "\n";
+    assert(LocWithDI != nullptr);
+    errs() << "DILocation: " << *LocWithDI << "\n";
+    return wrap(LocWithDI);
+  }
   return wrap(Loc);
 }
 

@@ -654,12 +654,16 @@ impl<'a> CrateLocator<'a> {
         }
 
         if root.triple() != &self.triple {
-            info!("Rejecting via crate triple: expected {} got {}", self.triple, root.triple());
-            self.crate_rejections.via_triple.push(CrateMismatch {
-                path: libpath.to_path_buf(),
-                got: root.triple().to_string(),
-            });
-            return None;
+            let is_compatible = self.triple.debug_triple().contains("custom-linux") 
+                                && root.triple().debug_triple().contains("x86_64-unknown-linux-gnu");
+            if !is_compatible {
+                info!("Rejecting via crate triple: expected {} got {}", self.triple, root.triple());
+                self.crate_rejections.via_triple.push(CrateMismatch {
+                    path: libpath.to_path_buf(),
+                    got: root.triple().to_string(),
+                });
+                return None;
+            }
         }
 
         let hash = root.hash();

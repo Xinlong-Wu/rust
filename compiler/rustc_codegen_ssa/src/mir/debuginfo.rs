@@ -2,6 +2,7 @@ use crate::traits::*;
 use rustc_index::vec::IndexVec;
 use rustc_middle::middle::codegen_fn_attrs::CodegenFnAttrFlags;
 use rustc_middle::mir;
+use rustc_middle::mir::Safety;
 use rustc_middle::ty;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_session::config::DebugInfo;
@@ -80,7 +81,21 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
 
     fn dbg_loc(&self, source_info: mir::SourceInfo) -> Option<Bx::DILocation> {
         let (dbg_scope, inlined_at, span) = self.adjusted_span_and_dbg_scope(source_info)?;
-        Some(self.cx.dbg_loc(dbg_scope, inlined_at, span))
+        let safety = self.get_safety(source_info.scope);
+        eprintln!("DEBUG: scope {:?} has safety {:?}", source_info.scope, safety);
+        Some(self.cx.dbg_loc_with_safety(dbg_scope, inlined_at, span, safety))
+    }
+
+    fn get_safety(&self, scope: mir::SourceScope) -> Safety {
+        let scope_data = &self.mir.source_scopes[scope];
+        match &scope_data.local_data {
+            mir::ClearCrossCrate::Set(data) => data.safety,
+            mir::ClearCrossCrate::Clear => {
+                scope_data.parent_scope
+                    .map(|p| self.get_safety(p))
+                    .unwrap_or(mir::Safety::Safe)
+            }
+        }
     }
 
     fn adjusted_span_and_dbg_scope(
