@@ -1094,9 +1094,7 @@ LLVMRustDIBuilderCreateDebugLocation(unsigned Line, unsigned Column,
       unwrapDIPtr<MDNode>(InlinedAt));
   if (Discriminator != 0) {
     const DILocation* LocWithDI = Loc->cloneWithDiscriminator(Discriminator);
-    errs() << "get Discriminator: " << Discriminator << "\n";
     assert(LocWithDI != nullptr);
-    errs() << "DILocation: " << *LocWithDI << "\n";
     return wrap(LocWithDI);
   }
   return wrap(Loc);

@@ -560,7 +560,9 @@ impl<'ll, 'tcx> DebugInfoMethods<'tcx> for CodegenCx<'ll, 'tcx> {
         let DebugLoc { line, col, .. } = self.lookup_debug_loc(span.lo());
         let discriminator = match safety {
             Safety::Safe => 0,
-            _ => 3
+            Safety::BuiltinUnsafe => 1,
+            Safety::FnUnsafe => 2,
+            Safety::ExplicitUnsafe(_) => 3,
         };
         // eprintln!("DEBUG[dbg_loc_with_safety]: scope {:?} has safety {:?} (discriminator: {:?})", scope, safety, discriminator);
         unsafe { llvm::LLVMRustDIBuilderCreateDebugLocation(line, col, scope, inlined_at, discriminator) }

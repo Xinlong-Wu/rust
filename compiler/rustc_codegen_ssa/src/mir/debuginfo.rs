@@ -82,7 +82,6 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
     fn dbg_loc(&self, source_info: mir::SourceInfo) -> Option<Bx::DILocation> {
         let (dbg_scope, inlined_at, span) = self.adjusted_span_and_dbg_scope(source_info)?;
         let safety = self.get_safety(source_info.scope);
-        eprintln!("DEBUG: scope {:?} has safety {:?}", source_info.scope, safety);
         Some(self.cx.dbg_loc_with_safety(dbg_scope, inlined_at, span, safety))
     }
 
